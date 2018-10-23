@@ -698,7 +698,7 @@ One way to add SVG files was described in the section above. You can also import
 import { ReactComponent as Logo } from './logo.svg';
 const App = () => (
   <div>
-    {/* Logo is an actual React component */}
+    {ImageLinkForm}
     <Logo />
   </div>
 );
