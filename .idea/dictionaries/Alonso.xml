@@ -3,6 +3,8 @@
     <words>
       <w>clarifai</w>
       <w>onhover</w>
+      <w>signin</w>
+      <w>signout</w>
     </words>
   </dictionary>
 </component>

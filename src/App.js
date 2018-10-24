@@ -8,6 +8,8 @@ import './App.css';
 import Particles from 'react-particles-js';
 import Clarifai from 'clarifai';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import SignIn from './components/SignIn/SignIn';
+import Register from './components/Register/Register';
 
 const particlesOptions = {
   "particles": {
@@ -20,7 +22,7 @@ const particlesOptions = {
     },
     "move": {
       "enable": true,
-      "speed": 15,
+      "speed": 20,
       "direction": "none",
       "random": false,
       "straight": false,
@@ -62,7 +64,9 @@ class App extends Component {
     this.state = {
       input: '',
       imageUrl: '',
-      box: ''
+      box: {},
+      route: 'signin',
+      isSignedIn: false
     }
   }
 
@@ -84,7 +88,7 @@ class App extends Component {
 
   displayFaceBox = (box) => {
     this.setState({box: box});
-    console.log(box);
+    // console.log(box);
   };
 
   onInputChange = (event) => {
@@ -109,19 +113,60 @@ class App extends Component {
 
   };
 
+  onRouteChange = (route) => {
+    if (route === 'signout') {
+      this.setState({isSignedIn: false});
+      // console.log('sign out came through');
+      this.setState({route: route});
+
+
+    } else if (route === 'home') {
+      // console.log('before sign in came through', this.state.isSignedIn);
+      this.setState({isSignedIn: true});
+      // console.log('sign in came through and isSignedIn is ', this.state.isSignedIn);
+      this.setState({route: route});
+
+    } else {
+      // console.log('...else came through', this.state.route, this.state.isSignedIn);
+      this.setState({isSignedIn: false});
+      this.setState({route: route});
+      // console.log('after else came through', this.state.route, this.state.isSignedIn)
+    }
+
+  };
+
+  onSignInInputChange = (event) => {
+    console.log(event.target.value)
+  };
+
+
   render() {
+
+    const {box, isSignedIn, imageUrl, route} = this.state; // so you can remove this.state from state objects in the return statement below
+
     return (
         <div className="App">
           <Particles className='particle'
                      params={particlesOptions}
           />
-          <Navigation/>
-          <Logo/>
-          <Rank/>
-          <ImageLinkForm onInputChange={this.onInputChange}
-                         onButtonSubmit={this.onButtonSubmit}
-          />
-          <FaceRecognition box={this.state.box} imageUrl={this.state.imageUrl}/>
+          <Navigation onRouteChange={this.onRouteChange} isSignedIn={isSignedIn}/>
+          {route === 'signin'
+              ? <SignIn onRouteChange={this.onRouteChange}
+                        onSignInInputChange={this.onSignInInputChange}/>
+              : (route === 'home'
+                      ? <div>
+
+                        < Logo/>
+                        < Rank/>
+                        < ImageLinkForm onInputChange={this.onInputChange}
+                                        onButtonSubmit={this.onButtonSubmit}
+                        />
+                        <FaceRecognition box={box} imageUrl={imageUrl}/>
+                      </div>
+                      : <Register onRouteChange={this.onRouteChange}
+                                  onSignInInputChange={this.onSignInInputChange}/>
+              )
+          }
         </div>
     );
   }
