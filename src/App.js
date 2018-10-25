@@ -54,7 +54,8 @@ const particlesOptions = {
 // instantiate a new Clarifai app passing in your api key.
 const app = new Clarifai.App({
   // apiKey: 'fc7b8874f4d7454f9931fb7a4fc05010'
-  apiKey: '9a970029bf8b49fe9bd5ed6a086d0a75'
+  // apiKey: '9a970029bf8b49fe9bd5ed6a086d0a75'
+  apiKey: '4310f0a1837d4c048112e3847b4976a8'
 });
 
 class App extends Component {
@@ -66,9 +67,44 @@ class App extends Component {
       imageUrl: '',
       box: {},
       route: 'signin',
-      isSignedIn: false
+      isSignedIn: false,
+      user: {
+        _id: '',
+        user_id: '',
+        name: '',
+        email: '',
+        password: '',
+        entries: 0,
+        joined: ''
+      }
     }
   }
+
+  loadUser = (user) => {
+    this.setState(
+      {
+        user: {
+          _id: String(user._id),
+          user_id: user.user_id,
+          name: user.name,
+          email: user.email,
+          entries: user.entries,
+          joined: user.joined,
+          password: user.password
+        }
+      }
+    );
+    console.log('loaded user', this.state.user);
+  };
+
+  // componentDidMount() {
+  //   fetch('http://localhost:4000/')
+  //     .then(response => response.json())
+  //     .then(data => console.log('from local API', data))
+  //     .catch(error => console.log(error))
+  //
+  //
+  // }
 
   calculateFaceLocation = (data) => {
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
@@ -86,6 +122,11 @@ class App extends Component {
     }
   };
 
+  getUsername = (data) => {
+    this.setState({username: data});
+    console.log(this.state.username);
+  };
+
   displayFaceBox = (box) => {
     this.setState({box: box});
     // console.log(box);
@@ -93,23 +134,53 @@ class App extends Component {
 
   onInputChange = (event) => {
     this.setState(
-        {input: event.target.value}
+      {input: event.target.value}
     );
   };
 
-  onButtonSubmit = () => {
+  onPictureSubmit = () => {
     this.setState(
-        {imageUrl: this.state.input}
+      {imageUrl: this.state.input}
     );
+    console.log('user state before button click', this.state.user);
 
     // predict the contents of an image by passing in a url
     app.models.predict(
-        Clarifai.FACE_DETECT_MODEL, this.state.input)
+      Clarifai.FACE_DETECT_MODEL, this.state.input)
     // .then(response => console.log(response.outputs[0].data.regions[0].region_info.bounding_box))
-        .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-        .catch(error => {
-          console.log(error);
-        });
+      .then(response => {
+
+        if (response) {
+
+          fetch('http://localhost:4000/image', {
+            method: 'put',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(
+              {
+                _id: this.state.user._id,
+                // user_id: this.state.user.user_id,
+                entries: this.state.user.entries + 1,
+                // name: this.state.user.name,
+                // email: this.state.user.email,
+                // password: this.state.user.password,
+                // joined: this.state.user.joined
+              }
+            )
+          }).then(response => response.json())
+            .then(rank => {
+              console.log('user state after button click', rank);
+              // this.setState({user: {entries: rank}}) // this changes the user object entirely (erases the rest)
+              this.setState(Object.assign(this.state.user, {entries: rank})) //this updates only the entries in the user object
+            })
+            .catch(console.log);
+        }
+
+        this.displayFaceBox(this.calculateFaceLocation(response));
+        // console.log('current state after picture submit', this.state.user);
+      })
+      .catch(error => {
+        console.log(error);
+      });
 
   };
 
@@ -129,7 +200,23 @@ class App extends Component {
     } else {
       // console.log('...else came through', this.state.route, this.state.isSignedIn);
       this.setState({isSignedIn: false});
-      this.setState({route: route});
+      // this.setState({route: route});
+      this.setState({
+        input: '',
+        imageUrl: '',
+        box: {},
+        route: route,
+        isSignedIn: false,
+        user: {
+          _id: '',
+          user_id: '',
+          name: '',
+          email: '',
+          password: '',
+          entries: 0,
+          joined: ''
+        }
+      })
       // console.log('after else came through', this.state.route, this.state.isSignedIn)
     }
 
@@ -142,32 +229,36 @@ class App extends Component {
 
   render() {
 
-    const {box, isSignedIn, imageUrl, route} = this.state; // so you can remove this.state from state objects in the return statement below
+    const {user, box, isSignedIn, imageUrl, route} = this.state; // so you can remove this.state from state objects in the return statement below
 
     return (
-        <div className="App">
-          <Particles className='particle'
-                     params={particlesOptions}
+      <div className="App">
+        <Particles className='particle'
+                   params={particlesOptions}
+        />
+        <Navigation onRouteChange={this.onRouteChange} isSignedIn={isSignedIn}/>
+        {route === 'signin'
+          ? <SignIn getUsername={this.getUsername} onRouteChange={this.onRouteChange}
+                    onSignInInputChange={this.onSignInInputChange}
+                    loadUser={this.loadUser}
           />
-          <Navigation onRouteChange={this.onRouteChange} isSignedIn={isSignedIn}/>
-          {route === 'signin'
-              ? <SignIn onRouteChange={this.onRouteChange}
-                        onSignInInputChange={this.onSignInInputChange}/>
-              : (route === 'home'
-                      ? <div>
+          : (route === 'home'
+              ? <div>
 
-                        < Logo/>
-                        < Rank/>
-                        < ImageLinkForm onInputChange={this.onInputChange}
-                                        onButtonSubmit={this.onButtonSubmit}
-                        />
-                        <FaceRecognition box={box} imageUrl={imageUrl}/>
-                      </div>
-                      : <Register onRouteChange={this.onRouteChange}
-                                  onSignInInputChange={this.onSignInInputChange}/>
-              )
-          }
-        </div>
+                < Logo/>
+                < Rank user={user}/>
+                < ImageLinkForm onInputChange={this.onInputChange}
+                                onPictureSubmit={this.onPictureSubmit}
+                />
+                <FaceRecognition box={box} imageUrl={imageUrl}/>
+              </div>
+              : <Register onRouteChange={this.onRouteChange}
+                          onSignInInputChange={this.onSignInInputChange}
+                          loadUser={this.loadUser}
+              />
+          )
+        }
+      </div>
     );
   }
 }
