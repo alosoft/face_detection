@@ -10,7 +10,8 @@ class Register extends React.Component {
       email: '',
       password: '',
       name: '',
-      flash: 'none'
+      flashEmail: 'none',
+      flashField: 'none'
     }
   }
 
@@ -45,14 +46,20 @@ class Register extends React.Component {
       .then(user => {
         // console.log('response from register route', user);
         if (user === 'email exist') {
-          console.log('email exist');
-          this.setState({flash: 'block'});
+          // console.log('email exist');
+          this.setState({flashEmail: 'block'});
           this.props.onRouteChange('register');
         } else {
-          console.log('logged in user ', user);
-          this.setState({flash: 'none'});
-          this.props.loadUser(user);
-          this.props.onRouteChange('home');
+          // console.log('logged in user ', user);
+          // console.log(user);
+          if (user === 'empty fields') {
+            this.setState({flashField: 'block'});
+          } else {
+            this.setState({flashEmail: 'none'});
+            this.props.loadUser(user);
+            this.props.onRouteChange('home');
+          }
+
         }
       })
   };
@@ -68,7 +75,8 @@ class Register extends React.Component {
           <div className="measure">
             <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
               <legend className="f2 fw6 ph0 mh0">Register</legend>
-              <h4 style={{display: this.state.flash}}>Email already taken</h4>
+              <h4 style={{display: this.state.flashEmail}}>Email already taken</h4>
+              <h4 style={{display: this.state.flashField}}>All fields are required</h4>
               <div className="mt3">
                 <label className="db fw6 lh-copy f6" htmlFor="name">Name</label>
                 <input

@@ -73,7 +73,6 @@ class App extends Component {
         user_id: '',
         name: '',
         email: '',
-        password: '',
         entries: 0,
         joined: ''
       }
@@ -90,11 +89,10 @@ class App extends Component {
           email: user.email,
           entries: user.entries,
           joined: user.joined,
-          password: user.password
         }
       }
     );
-    console.log('loaded user', this.state.user);
+    // console.log('loaded user', this.state.user);
   };
 
   // componentDidMount() {

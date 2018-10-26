@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Rank = (props) => {
-  console.log('from rank component', props);
+  // console.log('from rank component', props);
   return (
       <div>
         <div className='white f3'>

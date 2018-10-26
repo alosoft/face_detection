@@ -7,13 +7,14 @@ class SignIn extends React.Component {
     this.state = {
       signInEmail: '',
       signInPassword: '',
-      flash: 'none'
+      flashEmail: 'none',
+      flashField: 'none'
     }
   }
 
   onEmailChange = (event) => {
-    this.setState({signInEmail: event.target.value})
-    console.log(event.target.value);
+    this.setState({signInEmail: event.target.value});
+    // console.log(event.target.value);
     // console.log(event.target.name);
   };
 
@@ -23,6 +24,11 @@ class SignIn extends React.Component {
   };
 
   onSubmitSignIn = () => {
+
+    this.setState({
+      flashEmail: 'none',
+      flashField: 'none'
+    });
 
     fetch('http://localhost:4000/signin', {
       method: 'post',
@@ -35,15 +41,20 @@ class SignIn extends React.Component {
       )
     }).then(response => response.json())
       .then(user => {
-        if(user === 'error logging in'){
-          console.log('wrong sigin details');
-          this.setState({flash: 'block'});
+        if (user === 'error logging in') {
+          // console.log('wrong sigin details');
+          this.setState({flashEmail: 'block'});
           this.props.onRouteChange('signin');
         } else {
-          console.log('logged in user ', user[0]);
-          this.setState({flash: 'block'});
-          this.props.loadUser(user[0]);
-          this.props.onRouteChange('home');
+          if (user === 'empty fields') {
+            this.setState({flashField: 'block'});
+          } else {
+            // console.log('logged in user ', user[0]);
+            this.setState({flashEmail: 'block'});
+            this.props.loadUser(user[0]);
+            this.props.onRouteChange('home');
+          }
+
         }
 
       })
@@ -57,7 +68,8 @@ class SignIn extends React.Component {
           <div className="measure">
             <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
               <legend className="f2 fw6 ph0 mh0">Sign In</legend>
-              <h4 style={{display: this.state.flash}}>Incorrect email or password</h4>
+              <h4 style={{display: this.state.flashEmail}}>Incorrect email or password</h4>
+              <h4 style={{display: this.state.flashField}}>All fields are required</h4>
               <div className="mt3">
                 <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
                 <input
